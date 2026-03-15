@@ -222,6 +222,7 @@ async function prepareTrialTones() {
     
     // Update UI
     document.getElementById('trial-number').textContent = `${experimentState.currentTrial}/40`;
+    updateDebugDisplay();
     document.getElementById('playback-status').textContent = 'Loading sounds...';
     document.getElementById('play-trial-btn').disabled = true;
     document.getElementById('response-buttons').style.display = 'none';
@@ -356,6 +357,7 @@ function updateStaircase(correct) {
     
     experimentState.lastDirection = direction;
     experimentState.deltaI = roundToStep(newDeltaI, 0.5);
+    updateDebugDisplay();
 }
 
 function completeBlock() {
@@ -493,3 +495,40 @@ document.getElementById('calibration-checkbox').addEventListener('change', funct
 
 console.log('Psychoacoustic Experiment - Stage 2 Initialized');
 console.log('Factorial Design: 2 Frequencies × 2 Tone Types × 2 Replications = 8 Blocks');
+
+// Debug stats toggle
+let debugStatsVisible = false;
+
+function toggleDebugStats() {
+    debugStatsVisible = !debugStatsVisible;
+    
+    const statsToToggle = ['freq-stat', 'tone-stat', 'delta-stat', 'reversal-stat'];
+    const btn = document.getElementById('debug-toggle-btn');
+    
+    statsToToggle.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.display = debugStatsVisible ? 'block' : 'none';
+        }
+    });
+    
+    btn.textContent = debugStatsVisible ? '🔒 Hide Debug Stats' : '🔍 Show Debug Stats';
+    
+    // Update values if visible
+    if (debugStatsVisible && experimentState.currentBlock) {
+        updateDebugDisplay();
+    }
+}
+
+function updateDebugDisplay() {
+    if (!debugStatsVisible) return;
+    
+    document.getElementById('current-freq').textContent = 
+        experimentState.currentBlock.frequency + ' Hz';
+    document.getElementById('current-tone').textContent = 
+        experimentState.currentBlock.toneType;
+    document.getElementById('current-delta').textContent = 
+        experimentState.deltaI.toFixed(1) + ' dB';
+    document.getElementById('reversal-count').textContent = 
+        `${experimentState.reversals.length}/6`;
+}

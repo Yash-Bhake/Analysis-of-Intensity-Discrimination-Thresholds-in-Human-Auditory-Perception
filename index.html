@@ -529,6 +529,29 @@
                         <div class="trial-stat-label">Trial</div>
                         <div class="trial-stat-value" id="trial-number">1/40</div>
                     </div>
+                    <div class="trial-stat" id="freq-stat" style="display: none;">
+                        <div class="trial-stat-label">Frequency</div>
+                        <div class="trial-stat-value" id="current-freq">--</div>
+                    </div>
+                    <div class="trial-stat" id="tone-stat" style="display: none;">
+                        <div class="trial-stat-label">Tone Type</div>
+                        <div class="trial-stat-value" id="current-tone">--</div>
+                    </div>
+                    <div class="trial-stat" id="delta-stat" style="display: none;">
+                        <div class="trial-stat-label">ΔI</div>
+                        <div class="trial-stat-value" id="current-delta">--</div>
+                    </div>
+                    <div class="trial-stat" id="reversal-stat" style="display: none;">
+                        <div class="trial-stat-label">Reversals</div>
+                        <div class="trial-stat-value" id="reversal-count">0/6</div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <button onclick="toggleDebugStats()" id="debug-toggle-btn" 
+                            style="padding: 8px 20px; font-size: 0.9rem; background: var(--bg-secondary);">
+                        🔍 Show Debug Stats
+                    </button>
                 </div>
 
                 <div class="trial-container">
