@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intensity Discrimination Experiment</title>
+    <title>Intensity Discrimination Experiment - Stage 2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0e14;
-            --bg-secondary: #141b24;
-            --bg-card: #1a2332;
-            --accent-primary: #00d4aa;
-            --accent-secondary: #7c3aed;
-            --text-primary: #e8edf4;
-            --text-secondary: #8b96a8;
-            --text-muted: #5a6578;
-            --border: #2a3544;
-            --error: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f29;
+            --bg-card: #232936;
+            --accent-primary: #28bfa4;
+            --accent-secondary: #5cd5f6;
+            --accent-success: #086f4c;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
         }
 
         * {
@@ -30,122 +28,81 @@
         }
 
         body {
-            font-family: 'Manrope', sans-serif;
+            font-family: 'Source Sans 3', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.03;
-            background: 
-                radial-gradient(circle at 20% 50%, var(--accent-primary) 0%, transparent 50%),
-                radial-gradient(circle at 80% 50%, var(--accent-secondary) 0%, transparent 50%);
-            animation: pulse 8s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.03; }
-            50% { opacity: 0.06; }
         }
 
         .container {
-            max-width: 900px;
+            max-width: 850px;
             margin: 0 auto;
             padding: 40px 20px;
-            position: relative;
         }
 
         header {
             text-align: center;
-            margin-bottom: 60px;
-            opacity: 0;
-            animation: fadeInDown 0.8s ease-out forwards;
+            margin-bottom: 50px;
+            animation: fadeIn 0.8s ease-out;
         }
 
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         h1 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 3.5rem;
-            font-weight: 400;
-            margin-bottom: 15px;
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
             background: linear-gradient(135deg, var(--text-primary), var(--accent-primary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            letter-spacing: -0.02em;
         }
 
         .subtitle {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: var(--text-secondary);
             font-weight: 300;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .stage {
             display: none;
-            opacity: 0;
         }
 
         .stage.active {
             display: block;
-            animation: fadeIn 0.6s ease-out forwards;
+            animation: slideIn 0.5s ease-out;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 50px rgba(0, 212, 170, 0.1);
+            border-radius: 12px;
+            padding: 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
         .card h2 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 2rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
             margin-bottom: 20px;
             color: var(--accent-primary);
-            font-weight: 400;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 22px;
         }
 
         label {
@@ -154,12 +111,9 @@
             color: var(--text-secondary);
             font-weight: 600;
             font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
-        input[type="number"],
-        select {
+        input[type="text"] {
             width: 100%;
             padding: 12px 16px;
             background: var(--bg-secondary);
@@ -167,32 +121,29 @@
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 1rem;
-            font-family: 'Manrope', sans-serif;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Source Sans 3', sans-serif;
+            transition: border-color 0.3s;
         }
 
-        input[type="number"]:focus,
-        select:focus {
+        input[type="text"]:focus {
             outline: none;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
         }
 
         .checkbox-group {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
             padding: 16px;
             background: var(--bg-secondary);
             border-radius: 8px;
             border: 1px solid var(--border);
             cursor: pointer;
-            transition: background 0.3s ease, border-color 0.3s ease;
+            transition: background 0.3s;
         }
 
         .checkbox-group:hover {
             background: var(--bg-primary);
-            border-color: var(--accent-primary);
         }
 
         input[type="checkbox"] {
@@ -200,15 +151,16 @@
             height: 20px;
             cursor: pointer;
             accent-color: var(--accent-primary);
+            flex-shrink: 0;
+            margin-top: 2px;
         }
 
         .checkbox-group label {
             margin: 0;
             cursor: pointer;
-            text-transform: none;
-            letter-spacing: normal;
             font-weight: 400;
             color: var(--text-primary);
+            line-height: 1.5;
         }
 
         button {
@@ -220,19 +172,13 @@
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            font-family: 'Manrope', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Source Sans 3', sans-serif;
         }
 
         button:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 212, 170, 0.3);
-        }
-
-        button:active:not(:disabled) {
-            transform: translateY(0);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
         }
 
         button:disabled {
@@ -240,124 +186,10 @@
             cursor: not-allowed;
         }
 
-        .button-secondary {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-        }
-
         .button-group {
             display: flex;
             gap: 15px;
-            margin-top: 30px;
-        }
-
-        .trial-container {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .trial-info {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 40px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-
-        .trial-stat {
-            text-align: center;
-        }
-
-        .trial-stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 5px;
-        }
-
-        .trial-stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--accent-primary);
-        }
-
-        .playback-indicator {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 40px;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .playback-indicator.playing {
-            color: var(--accent-primary);
-            animation: pulse-text 1s ease-in-out infinite;
-        }
-
-        @keyframes pulse-text {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .sound-icon {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--accent-primary);
-            border-radius: 50%;
-            animation: pulse-dot 1s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-        }
-
-        .response-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-        }
-
-        .response-button {
-            flex: 1;
-            max-width: 200px;
-            padding: 30px;
-            font-size: 1.5rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-
-        .response-button:hover:not(:disabled) {
-            border-color: var(--accent-primary);
-            background: var(--bg-card);
-            transform: scale(1.05);
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--bg-secondary);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 30px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            transition: width 0.3s ease;
-            border-radius: 4px;
+            margin-top: 25px;
         }
 
         .alert {
@@ -368,88 +200,149 @@
         }
 
         .alert-info {
-            background: rgba(0, 212, 170, 0.1);
+            background: rgba(59, 130, 246, 0.1);
             border-color: var(--accent-primary);
-            color: var(--text-primary);
         }
 
-        .alert-warning {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: var(--warning);
-            color: var(--text-primary);
+        .trial-info {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 35px;
+            display: flex;
+            justify-content: space-around;
         }
 
-        .calibration-controls {
+        .trial-stat {
+            text-align: center;
+        }
+
+        .trial-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+        }
+
+        .trial-stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .trial-container {
             text-align: center;
             padding: 40px 20px;
         }
 
-        .calibration-button {
+        .playback-status {
             font-size: 1.2rem;
-            padding: 20px 40px;
-            margin: 20px 0;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 35px;
+            min-height: 35px;
         }
 
-        .completion-message {
+        .playback-status.playing {
+            color: var(--accent-primary);
+        }
+
+        .play-button {
+            font-size: 1.3rem;
+            padding: 20px 45px;
+            margin-bottom: 30px;
+            background: var(--accent-success);
+            background: linear-gradient(135deg, var(--accent-success), var(--accent-primary));
+        }
+
+        .response-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .response-button {
+            flex: 1;
+            max-width: 220px;
+            padding: 28px 20px;
+            font-size: 1.1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        .response-button:hover:not(:disabled) {
+            border-color: var(--accent-primary);
+            background: var(--bg-card);
+            transform: scale(1.05);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 25px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transition: width 0.3s;
+        }
+
+        .break-screen {
             text-align: center;
             padding: 60px 20px;
         }
 
-        .completion-message h2 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 2.5rem;
-            color: var(--success);
+        .break-screen h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            color: var(--accent-success);
             margin-bottom: 20px;
         }
 
-        .results-summary {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            margin: 30px 0;
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin: 40px 0;
+            font-family: 'Playfair Display', serif;
         }
 
-        .result-item {
+        .completion-summary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .summary-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--border);
         }
 
-        .result-item:last-child {
+        .summary-item:last-child {
             border-bottom: none;
         }
 
-        .result-label {
+        .summary-label {
             color: var(--text-secondary);
         }
 
-        .result-value {
+        .summary-value {
             font-weight: 600;
             color: var(--accent-primary);
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .card {
-                padding: 30px 20px;
-            }
-
-            .trial-info {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .response-buttons {
-                flex-direction: column;
-            }
-
-            .response-button {
-                max-width: 100%;
-            }
         }
 
         .consent-text {
@@ -457,59 +350,81 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 20px;
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
             margin-bottom: 20px;
             font-size: 0.95rem;
-            line-height: 1.8;
+            line-height: 1.7;
         }
 
         .consent-text h3 {
             color: var(--accent-primary);
             margin-bottom: 10px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
-        .consent-text p {
+        .instructions-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-primary);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .instructions-box h3 {
+            color: var(--accent-primary);
             margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .instructions-box ul {
+            margin-left: 20px;
             color: var(--text-secondary);
+        }
+
+        .instructions-box li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .card { padding: 25px 20px; }
+            .trial-info { flex-wrap: wrap; gap: 15px; }
+            .response-buttons { flex-direction: column; }
+            .response-button { max-width: 100%; }
         }
     </style>
 </head>
 <body>
-    <div class="animated-bg"></div>
-    
     <div class="container">
         <header>
-            <h1>Intensity Discrimination</h1>
-            <p class="subtitle">Psychoacoustic Threshold Assessment</p>
+            <h1>Intensity Discrimination Study</h1>
+            <p class="subtitle">Psychoacoustic Research - Stage 2</p>
         </header>
 
         <!-- Stage 1: Consent -->
         <div id="stage-consent" class="stage active">
             <div class="card">
-                <h2>Research Ethics & Consent</h2>
+                <h2>Research Participation Consent</h2>
                 <div class="consent-text">
-                    <h3>Study Information</h3>
-                    <p>You are invited to participate in a psychoacoustic research study investigating intensity discrimination thresholds using a 2-Alternative Forced-Choice (2AFC) paradigm.</p>
+                    <h3>Study Purpose</h3>
+                    <p>You are invited to participate in a psychoacoustic research study investigating intensity discrimination thresholds across different frequencies and tone types.</p>
                     
                     <h3>What You Will Do</h3>
-                    <p>You will listen to pairs of tones and identify which one sounds louder. The experiment will take approximately 10-15 minutes to complete.</p>
+                    <p>You will complete 8 blocks of listening trials (approximately 60-90 minutes total). In each trial, you will hear two tones and identify which one sounds louder.</p>
+                    
+                    <h3>Session Structure</h3>
+                    <p>• 8 blocks of approximately 25-40 trials each</p>
+                    <p>• Mandatory 2-minute rest breaks between blocks</p>
+                    <p>• Please complete all 8 blocks in one session</p>
                     
                     <h3>Requirements</h3>
                     <p>• You must use headphones or earphones</p>
                     <p>• You should be in a quiet environment</p>
                     <p>• You must be 18 years or older</p>
-                    <p>• You should have normal or corrected-to-normal hearing</p>
-                    
-                    <h3>Risks & Benefits</h3>
-                    <p>This study involves listening to tones at comfortable volume levels. There are no known risks beyond those encountered in everyday life. Your participation will contribute to our understanding of auditory perception.</p>
-                    
-                    <h3>Data & Privacy</h3>
-                    <p>Your responses will be recorded anonymously. No personally identifiable information will be collected. Data will be used for research purposes only.</p>
                     
                     <h3>Voluntary Participation</h3>
-                    <p>Your participation is entirely voluntary. You may withdraw at any time without penalty.</p>
+                    <p>Your participation is entirely voluntary. You may withdraw at any time.</p>
                 </div>
 
                 <div class="checkbox-group">
@@ -518,61 +433,27 @@
                 </div>
 
                 <div class="button-group">
-                    <button onclick="proceedFromConsent()" id="consent-proceed-btn" disabled>Proceed to Study</button>
+                    <button onclick="proceedFromConsent()" id="consent-proceed-btn" disabled>Proceed</button>
                 </div>
             </div>
         </div>
 
-        <!-- Stage 2: Demographics -->
-        <div id="stage-demographics" class="stage">
+        <!-- Stage 2: Name Collection -->
+        <div id="stage-name" class="stage">
             <div class="card">
                 <h2>Participant Information</h2>
                 
-                <div class="form-group">
-                    <label for="age">Age</label>
-                    <input type="number" id="age" min="18" max="100" required>
+                <div class="alert alert-info">
+                    We would like to record your name with your data. This is optional - if you prefer to remain anonymous, leave the field blank and we will assign you a random ID.
                 </div>
 
                 <div class="form-group">
-                    <label for="gender">Gender</label>
-                    <select id="gender" required>
-                        <option value="">Select...</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="non-binary">Non-binary</option>
-                        <option value="prefer-not-to-say">Prefer not to say</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="musical-background">Musical Background</label>
-                    <select id="musical-background" required>
-                        <option value="">Select...</option>
-                        <option value="none">No musical training</option>
-                        <option value="some">Some musical training (< 3 years)</option>
-                        <option value="moderate">Moderate training (3-10 years)</option>
-                        <option value="extensive">Extensive training (> 10 years)</option>
-                        <option value="professional">Professional musician</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="noise-level">Current Background Noise Level</label>
-                    <select id="noise-level" required>
-                        <option value="">Select...</option>
-                        <option value="quiet">Quiet (library-like environment)</option>
-                        <option value="moderate">Moderate (typical room noise)</option>
-                        <option value="noisy">Noisy (significant background noise)</option>
-                    </select>
-                </div>
-
-                <div class="alert alert-warning">
-                    <strong>Important:</strong> Please ensure you are using headphones or earphones in a quiet environment before proceeding.
+                    <label for="participant-name">Your Name (Optional)</label>
+                    <input type="text" id="participant-name" placeholder="Leave blank for anonymous participation">
                 </div>
 
                 <div class="button-group">
-                    <button onclick="proceedFromDemographics()" id="demographics-proceed-btn">Continue to Calibration</button>
+                    <button onclick="proceedFromName()">Continue to Calibration</button>
                 </div>
             </div>
         </div>
@@ -583,19 +464,16 @@
                 <h2>Volume Calibration</h2>
                 
                 <div class="alert alert-info">
-                    <strong>Instructions:</strong> Click the button below to play a calibration tone. Adjust your system volume to a level that is loud but comfortable. Once set, do not adjust your volume during the experiment.
+                    Click the button below to play a calibration tone. Adjust your system volume to a level that is loud but comfortable. Once set, <strong>do not adjust your volume during the experiment</strong>.
                 </div>
 
-                <div class="calibration-controls">
-                    <button class="calibration-button" onclick="playCalibrationTone()" id="calibration-play-btn">
-                        Play Calibration Tone
+                <div style="text-align: center; padding: 30px 20px;">
+                    <button class="play-button" onclick="playCalibrationTone()" id="calibration-play-btn">
+                        🔊 Play Calibration Tone
                     </button>
-                    <p style="color: var(--text-muted); margin-top: 20px;">
-                        The tone is a 1000 Hz pure tone at -15 dBFS
-                    </p>
                 </div>
 
-                <div class="checkbox-group" style="margin-top: 30px;">
+                <div class="checkbox-group">
                     <input type="checkbox" id="calibration-checkbox">
                     <label for="calibration-checkbox">I have adjusted my volume to a comfortable level and will not change it during the experiment.</label>
                 </div>
@@ -606,32 +484,61 @@
             </div>
         </div>
 
-        <!-- Stage 4: Experimental Trials -->
+        <!-- Stage 4: Experiment Instructions -->
+        <div id="stage-instructions" class="stage">
+            <div class="card">
+                <h2>Experiment Instructions</h2>
+                
+                <div class="instructions-box">
+                    <h3>Your Task</h3>
+                    <ul>
+                        <li>In each trial, you will hear <strong>two tones</strong> separated by a brief silence</li>
+                        <li>Click the <strong>"Play Tones"</strong> button when you are ready to listen</li>
+                        <li>You can replay the tones if needed</li>
+                        <li>Identify <strong>which tone was louder</strong>: Sound 1 or Sound 2</li>
+                        <li>Once you select an answer, the next trial will begin</li>
+                    </ul>
+                </div>
+
+                <div class="instructions-box">
+                    <h3>Important Guidelines</h3>
+                    <ul>
+                        <li>Focus your full attention when playing the tones</li>
+                        <li>Take your time - there is no rush</li>
+                        <li>If unsure, make your best guess</li>
+                        <li>You will complete <strong>8 blocks</strong> with mandatory 2-minute breaks between them</li>
+                        <li>Please complete all 8 blocks in one session (approximately 60-90 minutes)</li>
+                    </ul>
+                </div>
+
+                <div class="button-group">
+                    <button onclick="startFirstBlock()">Start Block 1</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 5: Experimental Trials -->
         <div id="stage-experiment" class="stage">
             <div class="card">
                 <div class="trial-info">
                     <div class="trial-stat">
+                        <div class="trial-stat-label">Block</div>
+                        <div class="trial-stat-value" id="block-number">1/8</div>
+                    </div>
+                    <div class="trial-stat">
                         <div class="trial-stat-label">Trial</div>
                         <div class="trial-stat-value" id="trial-number">1/40</div>
-                    </div>
-                    <div class="trial-stat">
-                        <div class="trial-stat-label">Reversals</div>
-                        <div class="trial-stat-value" id="reversal-count">0/8</div>
-                    </div>
-                    <div class="trial-stat">
-                        <div class="trial-stat-label">Current ΔI</div>
-                        <div class="trial-stat-value" id="current-delta">6.0 dB</div>
-                    </div>
-                    <div class="trial-stat">
-                        <div class="trial-stat-label">Frequency</div>
-                        <div class="trial-stat-value" id="current-freq">-- Hz</div>
                     </div>
                 </div>
 
                 <div class="trial-container">
-                    <div class="playback-indicator" id="playback-status">
-                        Preparing trial...
+                    <div class="playback-status" id="playback-status">
+                        Click "Play Tones" when ready
                     </div>
+
+                    <button class="play-button" onclick="playTrialTones()" id="play-trial-btn">
+                        ▶ Play Tones
+                    </button>
 
                     <div class="response-buttons" id="response-buttons" style="display: none;">
                         <button class="response-button" onclick="respondSound(1)">
@@ -649,30 +556,49 @@
             </div>
         </div>
 
-        <!-- Stage 5: Completion -->
+        <!-- Stage 6: Break -->
+        <div id="stage-break" class="stage">
+            <div class="card">
+                <div class="break-screen">
+                    <h2>⏸ Take a Break</h2>
+                    <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 20px;">
+                        You have completed Block <span id="break-completed-block">1</span> of 8
+                    </p>
+                    <p style="color: var(--text-secondary);">
+                        Please rest for 2 minutes before continuing.
+                    </p>
+                    
+                    <div class="timer-display" id="break-timer">2:00</div>
+                    
+                    <button id="continue-btn" onclick="continueToNextBlock()" disabled>
+                        Continue to Block <span id="next-block-num">2</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 7: Completion -->
         <div id="stage-completion" class="stage">
             <div class="card">
-                <div class="completion-message">
+                <div class="break-screen">
                     <h2>✓ Experiment Complete</h2>
-                    <p style="color: var(--text-secondary); font-size: 1.1rem;">Thank you for your participation!</p>
+                    <p style="color: var(--text-secondary); font-size: 1.1rem; margin-top: 15px;">
+                        Thank you for your participation!
+                    </p>
 
-                    <div class="results-summary">
-                        <h3 style="margin-bottom: 20px; color: var(--accent-primary);">Your Results</h3>
-                        <div class="result-item">
-                            <span class="result-label">Calculated Threshold (DL)</span>
-                            <span class="result-value" id="final-threshold">-- dB</span>
+                    <div class="completion-summary">
+                        <h3 style="margin-bottom: 15px; color: var(--accent-primary);">Session Summary</h3>
+                        <div class="summary-item">
+                            <span class="summary-label">Total Blocks Completed</span>
+                            <span class="summary-value">8</span>
                         </div>
-                        <div class="result-item">
-                            <span class="result-label">Test Frequency</span>
-                            <span class="result-value" id="final-frequency">-- Hz</span>
+                        <div class="summary-item">
+                            <span class="summary-label">Total Trials</span>
+                            <span class="summary-value" id="total-trials">--</span>
                         </div>
-                        <div class="result-item">
-                            <span class="result-label">Total Trials</span>
-                            <span class="result-value" id="final-trials">--</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Data Status</span>
-                            <span class="result-value" id="data-status">Saving...</span>
+                        <div class="summary-item">
+                            <span class="summary-label">Data Status</span>
+                            <span class="summary-value" id="data-status">Saving...</span>
                         </div>
                     </div>
 

@@ -1,46 +1,30 @@
 /**
- * Google Apps Script for Psychoacoustic Experiment Data Logging
- * 
- * SETUP INSTRUCTIONS:
- * 1. Create a new Google Sheet
- * 2. Click Extensions > Apps Script
- * 3. Delete any code in the editor and paste this entire script
- * 4. Click "Deploy" > "New deployment"
- * 5. Select type: "Web app"
- * 6. Set "Execute as": Me
- * 7. Set "Who has access": Anyone
- * 8. Click "Deploy"
- * 9. Copy the web app URL
- * 10. Paste the URL into the CONFIG.GOOGLE_SCRIPT_URL in experiment.js
- * 11. Replace 'YOUR_SHEET_ID_HERE' below with your Google Sheet ID
- *     (Find this in the URL: https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_HERE/edit)
+ * Google Apps Script for Psychoacoustic Experiment - Stage 2
+ * Logs data from 2×2 factorial design with 2 replications (8 blocks per participant)
  */
 
 // Configuration
-const SHEET_ID = '1X2zVVpB6ex1I2h4zX0y8mFPksqEj3tQ7rZm1FIuaiAc'; // Replace with your Google Sheet ID
-const SHEET_NAME = 'Experimental Data'; // Name of the sheet tab
+const SHEET_ID = '1X2zVVpB6ex1I2h4zX0y8mFPksqEj3tQ7rZm1FIuaiAc';
+const SHEET_NAME = 'Experimental Data';
 
 /**
  * Handle POST requests from the experiment
  */
 function doPost(e) {
   try {
-    // Parse the incoming JSON data
     const data = JSON.parse(e.postData.contents);
-    
-    // Get or create the sheet
     const sheet = getOrCreateSheet();
     
-    // Append the data
-    appendDataToSheet(sheet, data);
+    // Append one row per block (8 rows per participant)
+    for (let blockData of data.blockData) {
+      appendBlockToSheet(sheet, data, blockData);
+    }
     
-    // Return success response
     return ContentService
-      .createTextOutput(JSON.stringify({ 'result': 'success', 'row': sheet.getLastRow() }))
+      .createTextOutput(JSON.stringify({ 'result': 'success', 'blocks': data.blockData.length }))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
-    // Return error response
     Logger.log('Error: ' + error.toString());
     return ContentService
       .createTextOutput(JSON.stringify({ 'result': 'error', 'error': error.toString() }))
@@ -53,7 +37,7 @@ function doPost(e) {
  */
 function doGet(e) {
   return ContentService
-    .createTextOutput('Psychoacoustic Experiment Data Logger is running. Use POST to submit data.')
+    .createTextOutput('Psychoacoustic Experiment Data Logger - Stage 2 (Running)')
     .setMimeType(ContentService.MimeType.TEXT);
 }
 
@@ -64,25 +48,22 @@ function getOrCreateSheet() {
   const ss = SpreadsheetApp.openById(SHEET_ID);
   let sheet = ss.getSheetByName(SHEET_NAME);
   
-  // Create sheet if it doesn't exist
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
     
-    // Add headers
+    // Column headers for factorial design
     const headers = [
       'Timestamp',
-      'Subject ID',
-      'Age',
-      'Gender',
-      'Musical Background',
-      'Noise Level',
+      'Participant ID',
+      'Participant Name',
+      'Block Number',
       'Frequency (Hz)',
-      'Pedestal (dBFS)',
-      'Duration (ms)',
-      'Bitrate (kbps)',
-      'Calculated Threshold (dB)',
+      'Tone Type',
+      'Replication',
+      'Threshold (dB)',
       'Total Trials',
       'Total Reversals',
+      'Fine Reversals',
       'Raw Trial Data'
     ];
     
@@ -90,7 +71,7 @@ function getOrCreateSheet() {
     
     // Format header row
     sheet.getRange(1, 1, 1, headers.length)
-      .setBackground('#00d4aa')
+      .setBackground('#3b82f6')
       .setFontColor('#ffffff')
       .setFontWeight('bold')
       .setHorizontalAlignment('center');
@@ -99,84 +80,101 @@ function getOrCreateSheet() {
     sheet.setFrozenRows(1);
     
     // Set column widths
-    sheet.setColumnWidth(1, 180); // Timestamp
-    sheet.setColumnWidth(2, 120); // Subject ID
-    sheet.setColumnWidth(11, 150); // Threshold
-    sheet.setColumnWidth(14, 300); // Raw Trial Data
+    sheet.setColumnWidth(1, 180);  // Timestamp
+    sheet.setColumnWidth(2, 120);  // Participant ID
+    sheet.setColumnWidth(3, 150);  // Participant Name
+    sheet.setColumnWidth(4, 80);   // Block Number
+    sheet.setColumnWidth(5, 100);  // Frequency
+    sheet.setColumnWidth(6, 100);  // Tone Type
+    sheet.setColumnWidth(7, 90);   // Replication
+    sheet.setColumnWidth(8, 110);  // Threshold
+    sheet.setColumnWidth(12, 300); // Raw Trial Data
   }
   
   return sheet;
 }
 
 /**
- * Append data row to sheet
+ * Append one block's data to the sheet
  */
-function appendDataToSheet(sheet, data) {
+function appendBlockToSheet(sheet, sessionData, blockData) {
   const row = [
-    data.timestamp || new Date().toISOString(),
-    data.subjectID || '',
-    data.age || '',
-    data.gender || '',
-    data.musicalBackground || '',
-    data.noiseLevel || '',
-    data.frequency || '',
-    data.pedestal || '',
-    data.duration || '',
-    data.bitrate || '',
-    data.calculatedThreshold_DL || '',
-    data.totalTrials || '',
-    data.totalReversals || '',
-    data.rawTrialData || ''
+    sessionData.timestamp,
+    sessionData.participantID || '',
+    sessionData.participantName || '',
+    blockData.blockNumber || '',
+    blockData.frequency || '',
+    blockData.toneType || '',
+    blockData.replication || '',
+    blockData.threshold || '',
+    blockData.totalTrials || '',
+    blockData.totalReversals || '',
+    blockData.fineReversals || '',
+    JSON.stringify(blockData.trialHistory || [])
   ];
   
   sheet.appendRow(row);
   
-  // Format the new row
   const lastRow = sheet.getLastRow();
   
-  // Alternate row colors for readability
+  // Alternate row colors
   if (lastRow % 2 === 0) {
     sheet.getRange(lastRow, 1, 1, row.length).setBackground('#f8f9fa');
   }
   
-  // Format threshold column as number with 3 decimal places
-  if (data.calculatedThreshold_DL) {
-    sheet.getRange(lastRow, 11).setNumberFormat('0.000');
+  // Format threshold as number with 3 decimals
+  if (blockData.threshold) {
+    sheet.getRange(lastRow, 8).setNumberFormat('0.000');
   }
 }
 
 /**
- * Test function to verify setup
- * Run this from the Apps Script editor to test
+ * Test function - run from Apps Script editor
  */
 function testDataLogging() {
   const testData = {
     timestamp: new Date().toISOString(),
-    subjectID: 'TEST_123',
-    age: 25,
-    gender: 'test',
-    musicalBackground: 'some',
-    noiseLevel: 'quiet',
-    frequency: 1000,
-    pedestal: -15,
-    duration: 500,
-    bitrate: 128,
-    calculatedThreshold_DL: 3.456,
-    totalTrials: 25,
-    totalReversals: 8,
-    rawTrialData: '[{"trial":1,"correct":true}]'
+    participantID: 'TEST_P123',
+    participantName: 'Test Subject',
+    totalBlocks: 8,
+    blockData: [
+      {
+        blockNumber: 1,
+        frequency: 250,
+        toneType: 'sine',
+        replication: 1,
+        threshold: 3.456,
+        totalTrials: 28,
+        totalReversals: 7,
+        fineReversals: 6,
+        trialHistory: [{"trial": 1, "correct": true}]
+      },
+      {
+        blockNumber: 2,
+        frequency: 1000,
+        toneType: 'triangle',
+        replication: 1,
+        threshold: 2.789,
+        totalTrials: 31,
+        totalReversals: 8,
+        fineReversals: 6,
+        trialHistory: [{"trial": 1, "correct": false}]
+      }
+    ]
   };
   
   const sheet = getOrCreateSheet();
-  appendDataToSheet(sheet, testData);
+  
+  for (let blockData of testData.blockData) {
+    appendBlockToSheet(sheet, testData, blockData);
+  }
   
   Logger.log('Test data logged successfully!');
   Logger.log('Check your sheet: ' + SpreadsheetApp.openById(SHEET_ID).getUrl());
 }
 
 /**
- * Create a summary statistics sheet
- * Run this manually to analyze collected data
+ * Create summary statistics for analysis
  */
 function createSummarySheet() {
   const ss = SpreadsheetApp.openById(SHEET_ID);
@@ -192,43 +190,70 @@ function createSummarySheet() {
     summarySheet = ss.insertSheet('Summary Statistics');
   }
   
-  // Clear existing content
   summarySheet.clear();
   
-  // Add summary headers
-  summarySheet.getRange('A1').setValue('Summary Statistics');
+  // Title
+  summarySheet.getRange('A1').setValue('Factorial Design Summary Statistics');
   summarySheet.getRange('A1').setFontSize(14).setFontWeight('bold');
   
-  // Count total participants
+  // Overall stats
   const lastRow = dataSheet.getLastRow();
   summarySheet.getRange('A3').setValue('Total Participants:');
-  summarySheet.getRange('B3').setValue(lastRow - 1); // Subtract header row
+  summarySheet.getRange('B3').setFormula(`=COUNTA(UNIQUE('${SHEET_NAME}'!B2:B))`);
   
-  // Average threshold by frequency
-  summarySheet.getRange('A5').setValue('Average Threshold by Frequency');
-  summarySheet.getRange('A5').setFontWeight('bold');
+  summarySheet.getRange('A4').setValue('Total Blocks Recorded:');
+  summarySheet.getRange('B4').setValue(lastRow - 1);
   
-  const frequencies = [250, 500, 1000, 2000, 3000];
-  summarySheet.getRange('A6').setValue('Frequency (Hz)');
-  summarySheet.getRange('B6').setValue('Mean Threshold (dB)');
-  summarySheet.getRange('C6').setValue('Std Dev');
-  summarySheet.getRange('D6').setValue('N');
+  // Mean threshold by treatment combination
+  summarySheet.getRange('A6').setValue('Mean Threshold by Treatment Combination');
+  summarySheet.getRange('A6').setFontWeight('bold');
   
-  let row = 7;
-  frequencies.forEach(freq => {
+  const headers = ['Frequency', 'Tone Type', 'Mean Threshold (dB)', 'Std Dev', 'N'];
+  summarySheet.getRange(7, 1, 1, headers.length).setValues([headers]);
+  summarySheet.getRange(7, 1, 1, headers.length).setFontWeight('bold');
+  
+  let row = 8;
+  const treatments = [
+    [250, 'sine'],
+    [250, 'triangle'],
+    [1000, 'sine'],
+    [1000, 'triangle']
+  ];
+  
+  treatments.forEach(([freq, tone]) => {
     summarySheet.getRange(row, 1).setValue(freq);
+    summarySheet.getRange(row, 2).setValue(tone);
     
-    // Use AVERAGEIF and STDEV.S formulas
-    const avgFormula = `=AVERAGEIF('${SHEET_NAME}'!G:G,${freq},'${SHEET_NAME}'!K:K)`;
-    const stdFormula = `=STDEV.S(FILTER('${SHEET_NAME}'!K:K,'${SHEET_NAME}'!G:G=${freq}))`;
-    const countFormula = `=COUNTIF('${SHEET_NAME}'!G:G,${freq})`;
+    // Use AVERAGEIFS and other formulas
+    const avgFormula = `=AVERAGEIFS('${SHEET_NAME}'!H:H,'${SHEET_NAME}'!E:E,${freq},'${SHEET_NAME}'!F:F,"${tone}")`;
+    const stdFormula = `=STDEV.S(FILTER('${SHEET_NAME}'!H:H,('${SHEET_NAME}'!E:E=${freq})*('${SHEET_NAME}'!F:F="${tone}")))`;
+    const countFormula = `=COUNTIFS('${SHEET_NAME}'!E:E,${freq},'${SHEET_NAME}'!F:F,"${tone}")`;
     
-    summarySheet.getRange(row, 2).setFormula(avgFormula).setNumberFormat('0.000');
-    summarySheet.getRange(row, 3).setFormula(stdFormula).setNumberFormat('0.000');
-    summarySheet.getRange(row, 4).setFormula(countFormula);
+    summarySheet.getRange(row, 3).setFormula(avgFormula).setNumberFormat('0.000');
+    summarySheet.getRange(row, 4).setFormula(stdFormula).setNumberFormat('0.000');
+    summarySheet.getRange(row, 5).setFormula(countFormula);
     
     row++;
   });
+  
+  // Main effects
+  summarySheet.getRange('A13').setValue('Main Effect: Frequency');
+  summarySheet.getRange('A13').setFontWeight('bold');
+  
+  summarySheet.getRange('A14').setValue('250 Hz Mean:');
+  summarySheet.getRange('B14').setFormula(`=AVERAGEIF('${SHEET_NAME}'!E:E,250,'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
+  
+  summarySheet.getRange('A15').setValue('1000 Hz Mean:');
+  summarySheet.getRange('B15').setFormula(`=AVERAGEIF('${SHEET_NAME}'!E:E,1000,'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
+  
+  summarySheet.getRange('A17').setValue('Main Effect: Tone Type');
+  summarySheet.getRange('A17').setFontWeight('bold');
+  
+  summarySheet.getRange('A18').setValue('Sine Mean:');
+  summarySheet.getRange('B18').setFormula(`=AVERAGEIF('${SHEET_NAME}'!F:F,"sine",'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
+  
+  summarySheet.getRange('A19').setValue('Triangle Mean:');
+  summarySheet.getRange('B19').setFormula(`=AVERAGEIF('${SHEET_NAME}'!F:F,"triangle",'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
   
   Logger.log('Summary sheet created!');
 }
