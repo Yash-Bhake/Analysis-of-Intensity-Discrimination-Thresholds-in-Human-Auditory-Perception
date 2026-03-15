@@ -497,7 +497,7 @@ console.log('Psychoacoustic Experiment - Stage 2 Initialized');
 console.log('Factorial Design: 2 Frequencies × 2 Tone Types × 2 Replications = 8 Blocks');
 
 // Debug stats toggle
-let debugStatsVisible = false;
+let debugStatsVisible = true;
 
 function toggleDebugStats() {
     debugStatsVisible = !debugStatsVisible;
