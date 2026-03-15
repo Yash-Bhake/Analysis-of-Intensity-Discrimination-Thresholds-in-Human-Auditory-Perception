@@ -11,7 +11,7 @@ const CONFIG = {
     
     // Adaptive staircase parameters
     INITIAL_DELTA_I: 5.0,  // Starting at 5 dB
-    LARGE_STEP: 1.5,       // Large step size until first error
+    LARGE_STEP: 1.0,       // Large step size until first error
     FINE_STEP: 0.5,        // Fine step size after first error
     MAX_TRIALS: 40,
     TARGET_REVERSALS: 6,
@@ -194,6 +194,7 @@ function initializeBlock() {
     experimentState.stepSize = CONFIG.LARGE_STEP;
     experimentState.inFineRegion = false;
     experimentState.firstErrorMade = false;
+    experimentState.correctStreak = 0;
     experimentState.reversals = [];
     experimentState.trialHistory = [];
     experimentState.lastDirection = null;
@@ -328,25 +329,48 @@ function updateStaircase(correct) {
     let newDeltaI = experimentState.deltaI;
     let direction = null;
     
-    if (correct) {
-        // Correct response: decrease deltaI (make harder)
-        newDeltaI = Math.max(0.5, experimentState.deltaI - experimentState.stepSize);
-        direction = 'down';
-    } else {
-        // Incorrect response
-        if (!experimentState.firstErrorMade) {
-            // First error: switch to fine region
+    if (!experimentState.firstErrorMade) {
+        // PHASE 1: Before first error - use large steps, 3-down rule
+        if (correct) {
+            experimentState.correctStreak = (experimentState.correctStreak || 0) + 1;
+            
+            // 3 consecutive correct → decrease (make harder)
+            if (experimentState.correctStreak >= 3) {
+                newDeltaI = Math.max(0.5, experimentState.deltaI - CONFIG.LARGE_STEP);
+                direction = 'down';
+                experimentState.correctStreak = 0;  // Reset streak
+            }
+        } else {
+            // First error encountered!
             experimentState.firstErrorMade = true;
             experimentState.inFineRegion = true;
             experimentState.stepSize = CONFIG.FINE_STEP;
+            experimentState.correctStreak = 0;
+            
+            // Increase deltaI (make easier)
+            newDeltaI = Math.min(12.0, experimentState.deltaI + CONFIG.FINE_STEP);
+            direction = 'up';
         }
-        
-        // Increase deltaI (make easier)
-        newDeltaI = Math.min(12.0, experimentState.deltaI + experimentState.stepSize);
-        direction = 'up';
+    } else {
+        // PHASE 2: After first error - use fine steps, 3-down 1-up
+        if (correct) {
+            experimentState.correctStreak = (experimentState.correctStreak || 0) + 1;
+            
+            // 3 consecutive correct → decrease (make harder)
+            if (experimentState.correctStreak >= 3) {
+                newDeltaI = Math.max(0.5, experimentState.deltaI - CONFIG.FINE_STEP);
+                direction = 'down';
+                experimentState.correctStreak = 0;  // Reset streak
+            }
+        } else {
+            // 1 incorrect → increase (make easier)
+            newDeltaI = Math.min(12.0, experimentState.deltaI + CONFIG.FINE_STEP);
+            direction = 'up';
+            experimentState.correctStreak = 0;  // Reset streak on error
+        }
     }
     
-    // Detect reversal
+    // Detect reversal (only when direction actually changes)
     if (direction && experimentState.lastDirection && direction !== experimentState.lastDirection) {
         experimentState.reversals.push({
             trial: experimentState.currentTrial,
@@ -355,7 +379,11 @@ function updateStaircase(correct) {
         });
     }
     
-    experimentState.lastDirection = direction;
+    // Update direction only if we actually moved
+    if (direction) {
+        experimentState.lastDirection = direction;
+    }
+    
     experimentState.deltaI = roundToStep(newDeltaI, 0.5);
     updateDebugDisplay();
 }
