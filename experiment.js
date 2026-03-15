@@ -8,7 +8,7 @@ const CONFIG = {
     GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwwYdWSiwyouO2etOI9xftWl-_js4lNQtRwYGjMb0-WE5Qc2vQW3o0Wqu2fjxBu2Cr_9A/exec', // Replace with your Google Apps Script URL
     STIMULI_PATH: 'stimuli/', // Path to stimuli folder
     DELTA_I_STEPS: Array.from({length: 24}, (_, i) => (i + 1) * 0.5), // 0.5 to 12.0 dB
-    INITIAL_DELTA_I: 6.0, // Starting intensity difference
+    INITIAL_DELTA_I: 4.0, // Starting intensity difference
     MAX_TRIALS: 40,
     TARGET_REVERSALS: 8,
     ISI: 500, // Inter-stimulus interval in ms
