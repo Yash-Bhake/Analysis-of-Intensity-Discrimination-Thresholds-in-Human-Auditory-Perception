@@ -11,7 +11,7 @@ const CONFIG = {
     
     // Adaptive staircase parameters
     INITIAL_DELTA_I: 5.0,  // Starting at 5 dB
-    LARGE_STEP: 1.5,       // Large step size until first error
+    LARGE_STEP: 1.0,       // Large step size until first error
     FINE_STEP: 0.5,        // Fine step size after first error
     MAX_TRIALS: 40,
     TARGET_REVERSALS: 6,
