@@ -17,7 +17,7 @@ const CONFIG = {
     TARGET_REVERSALS: 6,
     ISI: 500,              // Inter-stimulus interval in ms
     
-    BREAK_DURATION: 30,   // 1 minute in seconds
+    BREAK_DURATION: 120,   // 2 minute in seconds
 };
 
 // Factorial Design: 2×2 with 2 replications = 8 blocks
