@@ -1,1 +1,17 @@
 audioidlvenv/
+# Audio files (keep locally, don't push)
+*.wav
+*.mp3
+
+# Virtual environment (if not already there)
+audioidlvenv/
+
+# Jupyter checkpoint
+.ipynb_checkpoints/
+
+# Output directories (optional)
+outputs/
+outputs_real/
+
+# Large data files (optional)
+*.parquet
