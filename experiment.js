@@ -7,7 +7,7 @@
 
 // Configuration
 const CONFIG = {
-    GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwwYdWSiwyouO2etOI9xftWl-_js4lNQtRwYGjMb0-WE5Qc2vQW3o0Wqu2fjxBu2Cr_9A/exec',
+    GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzJxqX9-4ayrhtf_qd7-t0NnzSdNrjlBK7P5hnTXkHddzcn_JWfrFHgPkOjBAzlk9perw/exec',
     STIMULI_PATH: 'stimuli/',
     
     // Adaptive staircase parameters
