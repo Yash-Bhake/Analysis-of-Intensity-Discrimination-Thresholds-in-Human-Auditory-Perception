@@ -18,7 +18,7 @@ const CONFIG = {
     TARGET_REVERSALS: 6,
     DISCARD_EARLY_REVERSALS: 2,  // Discard first N reversals (unstable)
     
-    BREAK_DURATION: 120,   // 2 minutes in seconds
+    BREAK_DURATION: 60,   // 2 minutes in seconds
 };
 
 // Factorial Design: 2×2 with 2 replications = 8 blocks
