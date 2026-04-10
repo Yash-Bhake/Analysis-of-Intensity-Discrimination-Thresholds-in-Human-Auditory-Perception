@@ -1,2 +1,2 @@
 timestamp_utc,decision_id,discarded_factor,new_factor,justification,affected_artifacts
-2026-04-09T17:19:18Z,DC-001,Waveform (sine vs triangle),ISI (200 ms vs 1000 ms),JND for loudness defined for pure tones; triangle contains harmonics,"generate_stimuli.py, experiment.js, google-apps-script.gs, synthetic data, analyses"
+2026-04-10T07:29:11Z,DC-001,Waveform (sine vs triangle),ISI (200 ms vs 1000 ms),JND for loudness defined for pure tones; triangle contains harmonics,"generate_stimuli.py, experiment.js, google-apps-script.gs, synthetic data, analyses"

@@ -1,7 +1,5 @@
 audioidlvenv/
-# Audio files (keep locally, don't push)
-*.wav
-*.mp3
+
 
 # Virtual environment (if not already there)
 audioidlvenv/
