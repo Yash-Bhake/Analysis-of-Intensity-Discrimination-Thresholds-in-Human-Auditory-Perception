@@ -112,6 +112,14 @@ class AudioPlayer {
 
 const audioPlayer = new AudioPlayer();
 
+// localStorage safety keys
+const STORAGE_KEYS = {
+    SESSION_PREFIX: 'psycho_stage2_session_',
+    LAST_SESSION_KEY: 'psycho_stage2_last_session_key',
+    LAST_COMPLETED_JSON: 'psycho_stage2_last_completed_json',
+    LAST_COMPLETED_CSV: 'psycho_stage2_last_completed_csv'
+};
+
 // Utility functions
 function generateParticipantID() {
     return 'P' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
@@ -123,6 +131,78 @@ function roundToStep(value, step) {
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getSessionStorageKey() {
+    return `${STORAGE_KEYS.SESSION_PREFIX}${experimentState.participantID || 'unknown'}`;
+}
+
+function safeLocalStorageSet(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    } catch (error) {
+        console.warn(`localStorage write failed for key ${key}:`, error);
+    }
+}
+
+function buildCSVContent(blocks, participantID, participantName) {
+    const headers = [
+        'participant_id', 'participant_name', 'block_number',
+        'frequency_hz', 'isi_ms', 'replication',
+        'threshold_db', 'total_trials', 'total_reversals',
+        'discarded_reversals', 'usable_reversals', 'timestamp'
+    ];
+
+    const rows = blocks.map(b => [
+        participantID,
+        participantName,
+        b.blockNumber,
+        b.frequency,
+        b.isi,
+        b.replication,
+        Number(b.threshold).toFixed(4),
+        b.totalTrials,
+        b.totalReversals,
+        b.discardedReversals,
+        b.usableReversals,
+        new Date().toISOString()
+    ]);
+
+    return [headers, ...rows].map(r => r.join(',')).join('\n');
+}
+
+function persistCheckpoint(reason = 'checkpoint') {
+    const sessionKey = getSessionStorageKey();
+    const snapshot = {
+        savedAt: new Date().toISOString(),
+        reason,
+        schemaVersion: 'stage2_freq_isi_v1',
+        participantID: experimentState.participantID,
+        participantName: experimentState.participantName,
+        currentBlockIndex: experimentState.currentBlockIndex,
+        completedBlocks: experimentState.allBlockData.length,
+        allBlockData: experimentState.allBlockData
+    };
+
+    safeLocalStorageSet(sessionKey, JSON.stringify(snapshot));
+    safeLocalStorageSet(STORAGE_KEYS.LAST_SESSION_KEY, sessionKey);
+}
+
+function persistCompletedBackup() {
+    const completed = {
+        savedAt: new Date().toISOString(),
+        schemaVersion: 'stage2_freq_isi_v1',
+        participantID: experimentState.participantID,
+        participantName: experimentState.participantName,
+        totalBlocks: experimentState.allBlockData.length,
+        allBlockData: experimentState.allBlockData
+    };
+
+    safeLocalStorageSet(STORAGE_KEYS.LAST_COMPLETED_JSON, JSON.stringify(completed));
+    safeLocalStorageSet(
+        STORAGE_KEYS.LAST_COMPLETED_CSV,
+        buildCSVContent(completed.allBlockData, completed.participantID, completed.participantName)
+    );
 }
 
 function showStage(stageId) {
@@ -148,6 +228,9 @@ function proceedFromName() {
         experimentState.participantName = 'Anonymous';
         experimentState.participantID = generateParticipantID();
     }
+
+    // Start a recoverable local checkpoint for this participant session.
+    persistCheckpoint('session_started');
     
     showStage('stage-calibration');
 }
@@ -428,6 +511,9 @@ function completeBlock() {
     };
     
     experimentState.allBlockData.push(blockData);
+
+    // Persist progress after each completed block.
+    persistCheckpoint(`block_${blockData.blockNumber}_completed`);
     
     console.log(`Block ${experimentState.currentBlockIndex + 1} complete. Threshold: ${threshold.toFixed(3)} dB (from ${usableReversals.length} usable reversals)`);
     
@@ -487,6 +573,10 @@ async function completeExperiment() {
     document.getElementById('total-trials').textContent = totalTrials;
     
     showStage('stage-completion');
+
+    // Persist final session state and completed backups before any network/download step.
+    persistCheckpoint('experiment_completed');
+    persistCompletedBackup();
     
     // Auto-download CSV backup (analysis-ready format matching notebook schema)
     downloadDataAsCSV();
@@ -528,29 +618,11 @@ async function saveBlockToGoogleSheets(blockData) {
 // Column order mirrors: participant_id, block_number, frequency_hz, isi_ms,
 // replication, threshold_db, total_trials, total_reversals, usable_reversals
 function downloadDataAsCSV() {
-    const headers = [
-        'participant_id', 'participant_name', 'block_number',
-        'frequency_hz', 'isi_ms', 'replication',
-        'threshold_db', 'total_trials', 'total_reversals',
-        'discarded_reversals', 'usable_reversals', 'timestamp'
-    ];
-    
-    const rows = experimentState.allBlockData.map(b => [
+    const csvContent = buildCSVContent(
+        experimentState.allBlockData,
         experimentState.participantID,
-        experimentState.participantName,
-        b.blockNumber,
-        b.frequency,
-        b.isi,
-        b.replication,
-        b.threshold.toFixed(4),
-        b.totalTrials,
-        b.totalReversals,
-        b.discardedReversals,
-        b.usableReversals,
-        new Date().toISOString()
-    ]);
-    
-    const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
+        experimentState.participantName
+    );
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     
@@ -563,6 +635,24 @@ function downloadDataAsCSV() {
     URL.revokeObjectURL(url);
     
     console.log('CSV backup downloaded.');
+}
+
+function downloadLastCompletedBackupFromLocalStorage() {
+    const csvContent = localStorage.getItem(STORAGE_KEYS.LAST_COMPLETED_CSV);
+    if (!csvContent) {
+        alert('No completed local backup found in browser storage.');
+        return;
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `psychoacoustic_recovered_${Date.now()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 // Event listeners
@@ -580,6 +670,7 @@ console.log('Factor A (Spectral): Frequency - 250 Hz, 1000 Hz');
 console.log('Factor B (Temporal): ISI - 200 ms, 1000 ms');
 console.log('Tone Type: Pure Sine Waves (JND-appropriate)');
 console.log('Reversal Handling: Discard first 2 reversals, average remaining reversals');
+console.log('Safety: localStorage checkpoints enabled. Recovery command: downloadLastCompletedBackupFromLocalStorage()');
 
 // Debug stats toggle
 let debugStatsVisible = true;
