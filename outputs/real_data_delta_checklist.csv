@@ -1,0 +1,8 @@
+item,action
+Replace input path,Point to real CSV/JSON export
+Validate schema,Match expected_schema columns and units
+Run QC,Generate qc_run_level_flags.csv and review failed runs
+Update exclusions,Document excluded runs/participants with reasons
+Rerun analysis,Run all notebook cells top-to-bottom
+Refresh outputs,Regenerate all figures/tables in outputs/
+Update text,Replace synthetic-data wording with real-data interpretation

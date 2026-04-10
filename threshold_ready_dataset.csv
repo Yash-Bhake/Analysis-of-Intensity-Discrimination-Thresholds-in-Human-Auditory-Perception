@@ -1,0 +1,9 @@
+participant_id,block_number,frequency_hz,isi_ms,replication,threshold_db,total_trials,total_reversals,usable_reversals,quality_flag
+P1775751482synthetic,1,250,1000,1,2.75,31,6,4,ok
+P1775751482synthetic,2,250,1000,2,2.625,34,6,4,ok
+P1775751482synthetic,3,250,200,1,2.125,30,6,4,ok
+P1775751482synthetic,4,1000,1000,2,2.25,23,6,4,ok
+P1775751482synthetic,5,1000,200,1,1.25,26,6,4,ok
+P1775751482synthetic,6,250,200,2,1.875,27,6,4,ok
+P1775751482synthetic,7,1000,1000,1,2.75,22,6,4,ok
+P1775751482synthetic,8,1000,200,2,1.75,26,6,4,ok

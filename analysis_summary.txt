@@ -1,0 +1,11 @@
+STAGE 2 FACTORIAL ANALYSIS SUMMARY
+======================================================================
+
+DESIGN:
+• 2×2 Full Factorial Design
+• Factor A: Frequency (250 Hz, 1000 Hz)
+• Factor B: Tone Type (Sine, Triangle)
+• Replications: 2 per participant
+• Total participants: 5
+• Total observations: 40
+

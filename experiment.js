@@ -1,6 +1,7 @@
 /**
  * Psychoacoustic Experiment - Stage 2 Factorial Design
- * 2x2 Full Factorial: Frequency (250, 1000 Hz) × Tone Type (sine, triangle)
+ * 2x2 Full Factorial: Frequency (250, 1000 Hz) × ISI (200, 1000 ms)
+ * Pure sine wave tones (JND-appropriate stimuli)
  * 2 replications each = 8 blocks total
  */
 
@@ -15,14 +16,16 @@ const CONFIG = {
     FINE_STEP: 0.5,        // Fine step size after first error
     MAX_TRIALS: 40,
     TARGET_REVERSALS: 6,
-    ISI: 500,              // Inter-stimulus interval in ms
+    DISCARD_EARLY_REVERSALS: 2,  // Discard first N reversals (unstable)
     
-    BREAK_DURATION: 30,   // 1 minute in seconds
+    BREAK_DURATION: 120,   // 2 minutes in seconds
 };
 
 // Factorial Design: 2×2 with 2 replications = 8 blocks
+// Factor A: Frequency (spectral)
+// Factor B: ISI (temporal)
 const FREQUENCIES = [250, 1000];
-const TONE_TYPES = ['sine', 'triangle'];
+const ISI_VALUES = [200, 1000];  // Inter-stimulus interval in ms
 const REPLICATIONS = 2;
 
 // Generate block order (randomized for each participant)
@@ -32,10 +35,10 @@ function generateBlockOrder() {
     // Create all treatment combinations with replications
     for (let rep = 0; rep < REPLICATIONS; rep++) {
         for (let freq of FREQUENCIES) {
-            for (let tone of TONE_TYPES) {
+            for (let isi of ISI_VALUES) {
                 blocks.push({
                     frequency: freq,
-                    toneType: tone,
+                    isi: isi,  // ISI as temporal factor
                     replication: rep + 1
                 });
             }
@@ -207,13 +210,13 @@ function initializeBlock() {
 
 // File naming
 function getStandardFilename() {
-    const { frequency, toneType } = experimentState.currentBlock;
-    return `freq${frequency}_${toneType}_delta0.0.mp3`;
+    const { frequency } = experimentState.currentBlock;
+    return `freq${frequency}_delta0.0.mp3`;
 }
 
 function getComparisonFilename(deltaI) {
-    const { frequency, toneType } = experimentState.currentBlock;
-    return `freq${frequency}_${toneType}_delta${deltaI.toFixed(1)}.mp3`;
+    const { frequency } = experimentState.currentBlock;
+    return `freq${frequency}_delta${deltaI.toFixed(1)}.mp3`;
 }
 
 // Trial preparation and execution
@@ -266,6 +269,7 @@ async function playTrialTones() {
     document.getElementById('response-buttons').style.display = 'none';
     
     const { buffer1, buffer2 } = experimentState.tonesToPlay;
+    const isiDuration = experimentState.currentBlock.isi;  // Use block-specific ISI
     
     try {
         // Play Sound 1
@@ -273,10 +277,10 @@ async function playTrialTones() {
         document.getElementById('playback-status').className = 'playback-status playing';
         await audioPlayer.playBuffer(buffer1);
         
-        // Silence
+        // Silence (using block-specific ISI)
         document.getElementById('playback-status').textContent = 'Silence...';
         document.getElementById('playback-status').className = 'playback-status';
-        await sleep(CONFIG.ISI);
+        await sleep(isiDuration);
         
         // Play Sound 2
         document.getElementById('playback-status').textContent = '🔊 Sound 2 Playing...';
@@ -389,28 +393,32 @@ function updateStaircase(correct) {
 }
 
 function completeBlock() {
-    // Calculate threshold from fine-region reversals only
-    const fineReversals = experimentState.reversals.filter(r => r.inFineRegion);
-    const threshold = fineReversals.length > 0
-        ? fineReversals.reduce((sum, r) => sum + r.deltaI, 0) / fineReversals.length
+    // Calculate threshold from additional reversals only
+    // Discard first N reversals as they are unstable (initialization phase)
+    const usableReversals = experimentState.reversals.slice(CONFIG.DISCARD_EARLY_REVERSALS);
+    
+    const threshold = usableReversals.length > 0
+        ? usableReversals.reduce((sum, r) => sum + r.deltaI, 0) / usableReversals.length
         : experimentState.deltaI;
     
     // Store block data
     const blockData = {
         blockNumber: experimentState.currentBlockIndex + 1,
         frequency: experimentState.currentBlock.frequency,
-        toneType: experimentState.currentBlock.toneType,
+        isi: experimentState.currentBlock.isi,  // ISI as factor
         replication: experimentState.currentBlock.replication,
         threshold: threshold,
+        thresholdUnit: 'dB',
         totalTrials: experimentState.currentTrial,
         totalReversals: experimentState.reversals.length,
-        fineReversals: fineReversals.length,
+        discardedReversals: CONFIG.DISCARD_EARLY_REVERSALS,
+        usableReversals: usableReversals.length,
         trialHistory: experimentState.trialHistory
     };
     
     experimentState.allBlockData.push(blockData);
     
-    console.log(`Block ${experimentState.currentBlockIndex + 1} complete. Threshold: ${threshold.toFixed(3)} dB`);
+    console.log(`Block ${experimentState.currentBlockIndex + 1} complete. Threshold: ${threshold.toFixed(3)} dB (from ${usableReversals.length} usable reversals)`);
     
     // Check if more blocks remain
     if (experimentState.currentBlockIndex < 7) {
@@ -476,7 +484,8 @@ async function sendDataToGoogleSheets() {
         participantID: experimentState.participantID,
         participantName: experimentState.participantName,
         blockData: experimentState.allBlockData,
-        totalBlocks: 8
+        totalBlocks: 8,
+        schemaVersion: 'stage2_freq_isi_v1'
     };
     
     try {
@@ -484,12 +493,14 @@ async function sendDataToGoogleSheets() {
             method: 'POST',
             mode: 'no-cors',
             headers: {
-                'Content-Type': 'application/json',
+                // Use a simple content type for no-cors requests.
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             body: JSON.stringify(dataToSend)
         });
         
-        document.getElementById('data-status').textContent = 'Saved Successfully ✓';
+        // no-cors returns an opaque response; submission was sent but cannot be verified client-side.
+        document.getElementById('data-status').textContent = 'Submission sent ✓ (verify spreadsheet row)';
         document.getElementById('data-status').style.color = 'var(--accent-success)';
     } catch (error) {
         console.error('Error saving data:', error);
@@ -522,7 +533,11 @@ document.getElementById('calibration-checkbox').addEventListener('change', funct
 });
 
 console.log('Psychoacoustic Experiment - Stage 2 Initialized');
-console.log('Factorial Design: 2 Frequencies × 2 Tone Types × 2 Replications = 8 Blocks');
+console.log('Factorial Design: 2 Frequencies × 2 ISI Values × 2 Replications = 8 Blocks');
+console.log('Factor A (Spectral): Frequency - 250 Hz, 1000 Hz');
+console.log('Factor B (Temporal): ISI - 200 ms, 1000 ms');
+console.log('Tone Type: Pure Sine Waves (JND-appropriate)');
+console.log('Reversal Handling: Discard first 2 reversals, average remaining reversals');
 
 // Debug stats toggle
 let debugStatsVisible = true;
@@ -530,7 +545,7 @@ let debugStatsVisible = true;
 function toggleDebugStats() {
     debugStatsVisible = !debugStatsVisible;
     
-    const statsToToggle = ['freq-stat', 'tone-stat', 'delta-stat', 'reversal-stat'];
+    const statsToToggle = ['freq-stat', 'isi-stat', 'delta-stat', 'reversal-stat'];
     const btn = document.getElementById('debug-toggle-btn');
     
     statsToToggle.forEach(id => {
@@ -553,8 +568,8 @@ function updateDebugDisplay() {
     
     document.getElementById('current-freq').textContent = 
         experimentState.currentBlock.frequency + ' Hz';
-    document.getElementById('current-tone').textContent = 
-        experimentState.currentBlock.toneType;
+    document.getElementById('current-isi').textContent = 
+        experimentState.currentBlock.isi + ' ms';
     document.getElementById('current-delta').textContent = 
         experimentState.deltaI.toFixed(1) + ' dB';
     document.getElementById('reversal-count').textContent = 

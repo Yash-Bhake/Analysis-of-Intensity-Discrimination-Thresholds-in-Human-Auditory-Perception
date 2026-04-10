@@ -1,6 +1,7 @@
 /**
  * Google Apps Script for Psychoacoustic Experiment - Stage 2
  * Logs data from 2×2 factorial design with 2 replications (8 blocks per participant)
+ * Design: Frequency (250, 1000 Hz) × ISI (200, 1000 ms)
  */
 
 // Configuration
@@ -58,12 +59,13 @@ function getOrCreateSheet() {
       'Participant Name',
       'Block Number',
       'Frequency (Hz)',
-      'Tone Type',
+      'ISI (ms)',
       'Replication',
       'Threshold (dB)',
       'Total Trials',
       'Total Reversals',
-      'Fine Reversals',
+      'Discarded Reversals',
+      'Usable Reversals',
       'Raw Trial Data'
     ];
     
@@ -85,10 +87,10 @@ function getOrCreateSheet() {
     sheet.setColumnWidth(3, 150);  // Participant Name
     sheet.setColumnWidth(4, 80);   // Block Number
     sheet.setColumnWidth(5, 100);  // Frequency
-    sheet.setColumnWidth(6, 100);  // Tone Type
+    sheet.setColumnWidth(6, 100);  // ISI
     sheet.setColumnWidth(7, 90);   // Replication
     sheet.setColumnWidth(8, 110);  // Threshold
-    sheet.setColumnWidth(12, 300); // Raw Trial Data
+    sheet.setColumnWidth(13, 300); // Raw Trial Data
   }
   
   return sheet;
@@ -104,12 +106,13 @@ function appendBlockToSheet(sheet, sessionData, blockData) {
     sessionData.participantName || '',
     blockData.blockNumber || '',
     blockData.frequency || '',
-    blockData.toneType || '',
+    blockData.isi || '',
     blockData.replication || '',
     blockData.threshold || '',
     blockData.totalTrials || '',
     blockData.totalReversals || '',
-    blockData.fineReversals || '',
+    blockData.discardedReversals || 2,
+    blockData.usableReversals || '',
     JSON.stringify(blockData.trialHistory || [])
   ];
   
@@ -141,23 +144,25 @@ function testDataLogging() {
       {
         blockNumber: 1,
         frequency: 250,
-        toneType: 'sine',
+        isi: 200,
         replication: 1,
         threshold: 3.456,
         totalTrials: 28,
-        totalReversals: 7,
-        fineReversals: 6,
+        totalReversals: 6,
+        discardedReversals: 2,
+        usableReversals: 4,
         trialHistory: [{"trial": 1, "correct": true}]
       },
       {
         blockNumber: 2,
         frequency: 1000,
-        toneType: 'triangle',
+        isi: 1000,
         replication: 1,
         threshold: 2.789,
         totalTrials: 31,
-        totalReversals: 8,
-        fineReversals: 6,
+        totalReversals: 6,
+        discardedReversals: 2,
+        usableReversals: 4,
         trialHistory: [{"trial": 1, "correct": false}]
       }
     ]
@@ -208,26 +213,26 @@ function createSummarySheet() {
   summarySheet.getRange('A6').setValue('Mean Threshold by Treatment Combination');
   summarySheet.getRange('A6').setFontWeight('bold');
   
-  const headers = ['Frequency', 'Tone Type', 'Mean Threshold (dB)', 'Std Dev', 'N'];
+  const headers = ['Frequency', 'ISI (ms)', 'Mean Threshold (dB)', 'Std Dev', 'N'];
   summarySheet.getRange(7, 1, 1, headers.length).setValues([headers]);
   summarySheet.getRange(7, 1, 1, headers.length).setFontWeight('bold');
   
   let row = 8;
   const treatments = [
-    [250, 'sine'],
-    [250, 'triangle'],
-    [1000, 'sine'],
-    [1000, 'triangle']
+    [250, 200],
+    [250, 1000],
+    [1000, 200],
+    [1000, 1000]
   ];
   
-  treatments.forEach(([freq, tone]) => {
+  treatments.forEach(([freq, isi]) => {
     summarySheet.getRange(row, 1).setValue(freq);
-    summarySheet.getRange(row, 2).setValue(tone);
+    summarySheet.getRange(row, 2).setValue(isi);
     
     // Use AVERAGEIFS and other formulas
-    const avgFormula = `=AVERAGEIFS('${SHEET_NAME}'!H:H,'${SHEET_NAME}'!E:E,${freq},'${SHEET_NAME}'!F:F,"${tone}")`;
-    const stdFormula = `=STDEV.S(FILTER('${SHEET_NAME}'!H:H,('${SHEET_NAME}'!E:E=${freq})*('${SHEET_NAME}'!F:F="${tone}")))`;
-    const countFormula = `=COUNTIFS('${SHEET_NAME}'!E:E,${freq},'${SHEET_NAME}'!F:F,"${tone}")`;
+    const avgFormula = `=AVERAGEIFS('${SHEET_NAME}'!H:H,'${SHEET_NAME}'!E:E,${freq},'${SHEET_NAME}'!F:F,${isi})`;
+    const stdFormula = `=STDEV.S(FILTER('${SHEET_NAME}'!H:H,('${SHEET_NAME}'!E:E=${freq})*('${SHEET_NAME}'!F:F=${isi})))`;
+    const countFormula = `=COUNTIFS('${SHEET_NAME}'!E:E,${freq},'${SHEET_NAME}'!F:F,${isi})`;
     
     summarySheet.getRange(row, 3).setFormula(avgFormula).setNumberFormat('0.000');
     summarySheet.getRange(row, 4).setFormula(stdFormula).setNumberFormat('0.000');
@@ -246,14 +251,14 @@ function createSummarySheet() {
   summarySheet.getRange('A15').setValue('1000 Hz Mean:');
   summarySheet.getRange('B15').setFormula(`=AVERAGEIF('${SHEET_NAME}'!E:E,1000,'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
   
-  summarySheet.getRange('A17').setValue('Main Effect: Tone Type');
+  summarySheet.getRange('A17').setValue('Main Effect: ISI');
   summarySheet.getRange('A17').setFontWeight('bold');
   
-  summarySheet.getRange('A18').setValue('Sine Mean:');
-  summarySheet.getRange('B18').setFormula(`=AVERAGEIF('${SHEET_NAME}'!F:F,"sine",'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
+  summarySheet.getRange('A18').setValue('200 ms Mean:');
+  summarySheet.getRange('B18').setFormula(`=AVERAGEIF('${SHEET_NAME}'!F:F,200,'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
   
-  summarySheet.getRange('A19').setValue('Triangle Mean:');
-  summarySheet.getRange('B19').setFormula(`=AVERAGEIF('${SHEET_NAME}'!F:F,"triangle",'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
+  summarySheet.getRange('A19').setValue('1000 ms Mean:');
+  summarySheet.getRange('B19').setFormula(`=AVERAGEIF('${SHEET_NAME}'!F:F,1000,'${SHEET_NAME}'!H:H)`).setNumberFormat('0.000');
   
   Logger.log('Summary sheet created!');
 }

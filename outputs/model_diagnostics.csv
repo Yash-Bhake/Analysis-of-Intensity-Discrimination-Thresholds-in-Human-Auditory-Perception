@@ -1,0 +1,5 @@
+metric,value
+r_squared,0.855327468230694
+adjusted_r_squared,0.7468230694037146
+shapiro_p,0.32134187340161263
+levene_p,0.0

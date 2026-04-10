@@ -1,0 +1,9 @@
+participant_id,participant_name,block_number,frequency_hz,isi_ms,replication,threshold_db,total_trials,total_reversals,discarded_reversals,usable_reversals,failed_run
+P1775751482synthetic,Synthetic_Participant,1,250,1000,1,2.75,31,6,2,4,False
+P1775751482synthetic,Synthetic_Participant,2,250,1000,2,2.625,34,6,2,4,False
+P1775751482synthetic,Synthetic_Participant,3,250,200,1,2.125,30,6,2,4,False
+P1775751482synthetic,Synthetic_Participant,4,1000,1000,2,2.25,23,6,2,4,False
+P1775751482synthetic,Synthetic_Participant,5,1000,200,1,1.25,26,6,2,4,False
+P1775751482synthetic,Synthetic_Participant,6,250,200,2,1.875,27,6,2,4,False
+P1775751482synthetic,Synthetic_Participant,7,1000,1000,1,2.75,22,6,2,4,False
+P1775751482synthetic,Synthetic_Participant,8,1000,200,2,1.75,26,6,2,4,False

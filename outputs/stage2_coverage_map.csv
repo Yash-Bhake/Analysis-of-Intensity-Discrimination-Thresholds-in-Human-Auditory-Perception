@@ -1,0 +1,9 @@
+requirement_id,text,status,evidence_cell,artifact_path,reuse_tag
+R001,Recap from Stage 1,addressed,Section 1,ME794_Stage2_Complete_Analysis.ipynb,reuse_from_stage1
+R002,Design of 2-level full factorial experiment,addressed,Section 2,ME794_Stage2_Complete_Analysis.ipynb,new_stage2_content
+R003,Experimental results with raw data and means,addressed,Section 3,ME794_Stage2_Complete_Analysis.ipynb,new_stage2_content
+R004,Main and interaction effects with 95% CI,addressed,Section 4,ME794_Stage2_Complete_Analysis.ipynb,new_stage2_content
+R005,ANOVA table and significance tests,addressed,Section 5,ME794_Stage2_Complete_Analysis.ipynb,new_stage2_content
+R006,Regression model in coded variables,addressed,Section 6,ME794_Stage2_Complete_Analysis.ipynb,new_stage2_content
+R007,Model adequacy checking,addressed,Section 7,ME794_Stage2_Complete_Analysis.ipynb,new_stage2_content
+R008,Model improvement and next steps,addressed,Section 8,ME794_Stage2_Complete_Analysis.ipynb,new_stage2_content
