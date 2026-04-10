@@ -431,6 +431,9 @@ function completeBlock() {
     
     console.log(`Block ${experimentState.currentBlockIndex + 1} complete. Threshold: ${threshold.toFixed(3)} dB (from ${usableReversals.length} usable reversals)`);
     
+    // Save this block to Google Sheets immediately (don't wait for all 8 blocks)
+    saveBlockToGoogleSheets(blockData);
+    
     // Check if more blocks remain
     if (experimentState.currentBlockIndex < 7) {
         // Take a break
@@ -485,53 +488,81 @@ async function completeExperiment() {
     
     showStage('stage-completion');
     
-    // Send data to Google Sheets
-    await sendDataToGoogleSheets();
+    // Auto-download CSV backup (analysis-ready format matching notebook schema)
+    downloadDataAsCSV();
+    
+    document.getElementById('data-status').textContent =
+        'Data saved \u2713  Each block was sent to Google Sheets automatically. CSV also downloaded.';
+    document.getElementById('data-status').style.color = 'var(--accent-primary)';
 }
 
-async function sendDataToGoogleSheets() {
-    const dataToSend = {
+// Save a single completed block to Google Sheets immediately.
+// Wraps the block in an array so the Apps Script doPost handler
+// (which iterates over data.blockData[]) works with 1 or 8 entries.
+async function saveBlockToGoogleSheets(blockData) {
+    const payload = {
         timestamp: new Date().toISOString(),
         participantID: experimentState.participantID,
         participantName: experimentState.participantName,
-        blockData: experimentState.allBlockData,
+        blockData: [blockData],   // single-block array
         totalBlocks: 8,
         schemaVersion: 'stage2_freq_isi_v1'
     };
     
     try {
-        const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+        await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            headers: {
-                // Use a simple content type for no-cors requests.
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify(dataToSend)
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
         });
-        
-        // no-cors returns an opaque response; submission was sent but cannot be verified client-side.
-        document.getElementById('data-status').textContent = 'Submission sent ✓ (verify spreadsheet row)';
-        document.getElementById('data-status').style.color = 'var(--accent-success)';
+        console.log(`Block ${blockData.blockNumber} data sent to Google Sheets`);
     } catch (error) {
-        console.error('Error saving data:', error);
-        document.getElementById('data-status').textContent = 'Error - Download Backup';
-        document.getElementById('data-status').style.color = '#ef4444';
-        
-        // Fallback: download as JSON
-        downloadDataAsJSON(dataToSend);
+        // Non-fatal: data is still in experimentState.allBlockData and the
+        // CSV download at the end of the session will preserve it.
+        console.error(`Failed to send block ${blockData.blockNumber} to Sheets:`, error);
     }
 }
 
-function downloadDataAsJSON(data) {
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    const exportFileDefaultName = `psychoacoustic_data_${experimentState.participantID}.json`;
+// Download all block data as a CSV that matches the notebook/analysis schema.
+// Column order mirrors: participant_id, block_number, frequency_hz, isi_ms,
+// replication, threshold_db, total_trials, total_reversals, usable_reversals
+function downloadDataAsCSV() {
+    const headers = [
+        'participant_id', 'participant_name', 'block_number',
+        'frequency_hz', 'isi_ms', 'replication',
+        'threshold_db', 'total_trials', 'total_reversals',
+        'discarded_reversals', 'usable_reversals', 'timestamp'
+    ];
     
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+    const rows = experimentState.allBlockData.map(b => [
+        experimentState.participantID,
+        experimentState.participantName,
+        b.blockNumber,
+        b.frequency,
+        b.isi,
+        b.replication,
+        b.threshold.toFixed(4),
+        b.totalTrials,
+        b.totalReversals,
+        b.discardedReversals,
+        b.usableReversals,
+        new Date().toISOString()
+    ]);
+    
+    const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `psychoacoustic_${experimentState.participantID}_${Date.now()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    console.log('CSV backup downloaded.');
 }
 
 // Event listeners

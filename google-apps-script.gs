@@ -13,12 +13,33 @@ const SHEET_NAME = 'Experimental Data';
  */
 function doPost(e) {
   try {
+    // Guard: ensure there is a body to parse
+    if (!e || !e.postData || !e.postData.contents) {
+      Logger.log('doPost: empty or missing postData');
+      return ContentService
+        .createTextOutput(JSON.stringify({ 'result': 'error', 'error': 'No postData received' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     const data = JSON.parse(e.postData.contents);
+    Logger.log('doPost received payload: participant=' + (data.participantID || 'unknown') +
+               ', blocks=' + (data.blockData ? data.blockData.length : 'none') +
+               ', schema=' + (data.schemaVersion || 'unknown'));
+
+    if (!data.blockData || !Array.isArray(data.blockData) || data.blockData.length === 0) {
+      Logger.log('doPost: blockData missing or empty');
+      return ContentService
+        .createTextOutput(JSON.stringify({ 'result': 'error', 'error': 'blockData missing or empty' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     const sheet = getOrCreateSheet();
     
-    // Append one row per block (8 rows per participant)
+    // Append one row per block (works for single-block and full-session payloads)
     for (let blockData of data.blockData) {
       appendBlockToSheet(sheet, data, blockData);
+      Logger.log('Wrote row: block=' + blockData.blockNumber + ', freq=' + blockData.frequency +
+                 ', isi=' + blockData.isi + ', threshold=' + blockData.threshold);
     }
     
     return ContentService
@@ -26,7 +47,7 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
-    Logger.log('Error: ' + error.toString());
+    Logger.log('doPost error: ' + error.toString() + '\nStack: ' + error.stack);
     return ContentService
       .createTextOutput(JSON.stringify({ 'result': 'error', 'error': error.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
