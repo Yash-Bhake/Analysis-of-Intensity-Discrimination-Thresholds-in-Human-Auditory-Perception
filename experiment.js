@@ -86,7 +86,11 @@ class AudioPlayer {
     }
 
     async loadAudioFile(filename) {
-        const response = await fetch(CONFIG.STIMULI_PATH + filename);
+        const url = CONFIG.STIMULI_PATH + filename;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to load ${url} (HTTP ${response.status})`);
+        }
         const arrayBuffer = await response.arrayBuffer();
         return await this.context.decodeAudioData(arrayBuffer);
     }
@@ -154,7 +158,14 @@ async function playCalibrationTone() {
     btn.textContent = 'Playing...';
 
     try {
-        const buffer = await audioPlayer.loadAudioFile('calibration_tone.mp3');
+        let buffer;
+        try {
+            buffer = await audioPlayer.loadAudioFile('calibration_tone.mp3');
+        } catch (primaryError) {
+            console.warn('Calibration file missing, using fallback tone:', primaryError);
+            // Fallback keeps calibration usable even if dedicated file is absent on hosting.
+            buffer = await audioPlayer.loadAudioFile('freq1000_delta0.0.mp3');
+        }
         await audioPlayer.playBuffer(buffer);
         
         setTimeout(() => {
@@ -163,7 +174,7 @@ async function playCalibrationTone() {
         }, 500);
     } catch (error) {
         console.error('Error playing calibration tone:', error);
-        alert('Error loading calibration tone. Please ensure the stimuli folder is accessible.');
+        alert('Error loading calibration tone. Please ensure the stimuli folder is accessible and includes required MP3 files.');
         btn.disabled = false;
         btn.textContent = '🔊 Play Calibration Tone';
     }
